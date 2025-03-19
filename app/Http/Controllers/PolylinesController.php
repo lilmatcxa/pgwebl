@@ -2,24 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PolylinesModel;
 use Illuminate\Http\Request;
 
 class PolylinesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $this->polylines = new PolylinesModel();
     }
 
     /**
@@ -27,38 +17,34 @@ class PolylinesController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        // Validasi request
+        $request->validate(
+            [
+                'name' => 'required|unique:polylines,name',
+                'description' => 'required',
+                'geom_polyline' => 'required',
+            ],
+            [
+                'name.required' => 'Name is required',
+                'name.unique' => 'Name already exist',
+                'description.required' => 'Description is required',
+                'geom_polyline.required' => 'Geometry is required',
+            ]
+        );
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        // Simpan data
+        $data = [
+            'geom' => $request->geom_polyline, // Perbaikan dari geom_point ke geom_polyline
+            'name' => $request->name,
+            'description' => $request->description,
+        ];
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+        // Simpan ke database
+        if (!$this->polylines->create($data)) { // Perbaikan dari $this->points ke $this->polylines
+            return redirect()->route('map')->with('error', 'Polyline failed to add');
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        // Redirect ke halaman peta
+        return redirect()->route('map')->with('success', 'Polyline has been added');
     }
 }
