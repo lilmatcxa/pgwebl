@@ -15,7 +15,6 @@
     <script>
         var toastLive = document.getElementById('liveToastSuccess')
         var toast = new bootstrap.Toast(toastLive)
-
         toast.show()
         //console.log("{{ session('success') }}");
     </script>

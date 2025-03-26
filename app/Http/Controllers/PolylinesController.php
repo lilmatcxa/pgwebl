@@ -34,16 +34,14 @@ class PolylinesController extends Controller
 
         // Simpan data
         $data = [
-            'geom' => $request->geom_polyline, // Perbaikan dari geom_point ke geom_polyline
+            'geom' => $request->geom_polyline,
             'name' => $request->name,
             'description' => $request->description,
         ];
-
         // Simpan ke database
-        if (!$this->polylines->create($data)) { // Perbaikan dari $this->points ke $this->polylines
+        if (!$this->polylines->create($data)) {
             return redirect()->route('map')->with('error', 'Polyline failed to add');
         }
-
         // Redirect ke halaman peta
         return redirect()->route('map')->with('success', 'Polyline has been added');
     }

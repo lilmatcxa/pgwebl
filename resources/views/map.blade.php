@@ -112,8 +112,7 @@
     </div>
 
     <!-- Modal Create Polygon-->
-    <div class="modal fade" id="createpolygonModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="createpolygonModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -188,42 +187,27 @@
         });
 
         map.addControl(drawControl);
-
         map.on('draw:created', function(e) {
             var type = e.layerType,
                 layer = e.layer;
-
             console.log(type);
-
             var drawnJSONObject = layer.toGeoJSON();
             var objectGeometry = Terraformer.geojsonToWKT(drawnJSONObject.geometry);
-
             console.log(drawnJSONObject);
             // console.log(objectGeometry);
-
             if (type === 'polyline') {
                 console.log("Create " + type);
-
                 $('#geom_polyline').val(objectGeometry);
-
                 //nanti memunculkann modal create polyline
                 $('#createpolylineModal').modal('show');
-
             } else if (type === 'polygon' || type === 'rectangle') {
                 console.log("Create " + type);
-
-
                 $('#geom_polygon').val(objectGeometry);
-
-                //nanti memunculkann modal create polyline
                 $('#createpolygonModal').modal('show');
-
-
             } else if (type === 'marker') {
                 console.log("Create " + type);
 
                 $('#geom_point').val(objectGeometry);
-                // memunculkann modal create marker
                 $('#createpointModal').modal('show');
             } else {
                 console.log('__undefined__');
@@ -231,7 +215,68 @@
 
             drawnItems.addLayer(layer);
         });
+        // GeoJSON Points
+        var point = L.geoJson(null, {
+            onEachFeature: function(feature, layer) {
+                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                    "Deskripsi: " + feature.properties.description + "<br>" +
+                    "Dibuat: " + feature.properties.created_at;
+                layer.on({
+                    click: function(e) {
+                        point.bindPopup(popupContent);
+                    },
+                    mouseover: function(e) {
+                        point.bindTooltip(feature.properties.name);
+                    },
+                });
+            },
+        });
+        $.getJSON("{{ route('api.points') }}", function(data) {
+            point.addData(data);
+            map.addLayer(point);
+        });
+
+
+        // GeoJSON Polylines
+        var polyline = L.geoJson(null, {
+            onEachFeature: function(feature, layer) {
+                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                    "Deskripsi: " + feature.properties.description + "<br>" +
+                    "Panjang: " + feature.properties.length_km.toFixed + " km" + "<br>" +
+                    "Dibuat: " + feature.properties.created_at;
+                layer.on({
+                    click: function(e) {
+                        polyline.bindPopup(popupContent);
+                    },
+                    mouseover: function(e) {
+                        polyline.bindTooltip(feature.properties.name);
+                    },
+                });
+            },
+        });
+        $.getJSON("{{ route('api.polylines') }}", function(data) {
+            polyline.addData(data);
+            map.addLayer(polyline);
+        });
+
+        // GeoJSON Polygons
+        var polygon = L.geoJson(null, {
+            onEachFeature: function(feature, layer) {
+                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                    "Deskripsi: " + feature.properties.description + "<br>" + "Luas: " + feature.properties.area_ha.toFixed(2) + " ha" + "<br>" +
+                    "Dibuat: " + feature.properties.created_at;
+                layer.bindPopup(popupContent);
+            },
+        });
+        $.getJSON("{{ route('api.polygons') }}", function(data) {
+            polygon.addData(data);
+            map.addLayer(polygon);
+        });
     </script>
 @endsection
+
+
+
+
 
 </html>
