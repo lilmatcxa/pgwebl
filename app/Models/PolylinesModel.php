@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class PolylinesModel extends Model
 {
     protected $table = 'polylines';
-    protected $guided = ['id'];
+    protected $primaryKey = 'id';
+    public $timestamps = true;
 
     public function geojson_polylines()
     {
@@ -18,7 +19,7 @@ class PolylinesModel extends Model
                 name,
                 description,
                 ST_Length(geom, true) AS length_m,
-                ST_Length(geom, true) / 1000 AS length_km,
+                CAST(ST_Length(geom, true) / 1000 AS DOUBLE PRECISION) AS length_km,
                 created_at,
                 updated_at
             ")
@@ -33,8 +34,8 @@ class PolylinesModel extends Model
                     'properties' => [
                         'name' => $polyline->name,
                         'description' => $polyline->description,
-                        'length_m' => $polyline->length_m,
-                        'length_km' => $polyline->length_km,
+'length_km' => round((float) $polyline->length_km, 2),
+                        'length_km' => (float) $polyline->length_km,
                         'created_at' => $polyline->created_at,
                         'updated_at' => $polyline->updated_at
                     ],

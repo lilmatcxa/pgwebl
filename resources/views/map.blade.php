@@ -242,7 +242,7 @@
             onEachFeature: function(feature, layer) {
                 var popupContent = "Nama: " + feature.properties.name + "<br>" +
                     "Deskripsi: " + feature.properties.description + "<br>" +
-                    "Panjang: " + feature.properties.length_km.toFixed + " km" + "<br>" +
+                    "Panjang: " + feature.properties.length_km.toFixed(2) + " km" + "<br>" +
                     "Dibuat: " + feature.properties.created_at;
                 layer.on({
                     click: function(e) {
@@ -263,7 +263,8 @@
         var polygon = L.geoJson(null, {
             onEachFeature: function(feature, layer) {
                 var popupContent = "Nama: " + feature.properties.name + "<br>" +
-                    "Deskripsi: " + feature.properties.description + "<br>" + "Luas: " + feature.properties.area_ha.toFixed(2) + " ha" + "<br>" +
+                    "Deskripsi: " + feature.properties.description + "<br>" + "Luas: " + feature.properties
+                    .area_ha.toFixed(2) + " ha" + "<br>" +
                     "Dibuat: " + feature.properties.created_at;
                 layer.bindPopup(popupContent);
             },
