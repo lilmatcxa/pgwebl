@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\PointsModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class PointsController extends Controller
 {
+    protected $points;
 
     public function __construct()
     {
         $this->points = new PointsModel();
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -36,40 +39,53 @@ class PointsController extends Controller
      */
     public function store(Request $request)
     {
-        //Validate request
+        // Validasi input
         $request->validate(
             [
                 'name' => 'required|unique:points,name',
                 'description' => 'required',
                 'geom_point' => 'required',
+                'image' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:51200', // 50 KB = 51200 bytes
             ],
             [
                 'name.required' => 'Name is required',
-                'name.unique' => 'Name already exist',
+                'name.unique' => 'Name already exists',
                 'description.required' => 'Description is required',
                 'geom_point.required' => 'Geometry is required',
             ]
         );
 
-        //dd($request->all());
+        // Buat direktori penyimpanan jika belum ada
+        $imageDirectory = public_path('storage/images');
+        if (!File::exists($imageDirectory)) {
+            File::makeDirectory($imageDirectory, 0777, true);
+        }
+
+        // Proses file gambar jika tersedia
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $name_image = time() . "_point." . strtolower($image->getClientOriginalExtension());
+            $image->move($imageDirectory, $name_image);
+        } else {
+            $name_image = null;
+        }
+
+        // Siapkan data untuk disimpan
         $data = [
             'geom' => $request->geom_point,
             'name' => $request->name,
             'description' => $request->description,
+            'image' => $name_image,
         ];
 
-        //  dd($data);
-
-        //Create data
+        // Simpan data ke database
         if (!$this->points->create($data)) {
             return redirect()->route('map')->with('error', 'Point failed to add');
         }
 
-        //Redirect to map
+        // Redirect ke halaman peta dengan pesan sukses
         return redirect()->route('map')->with('success', 'Point has been added');
     }
-
-
 
     /**
      * Display the specified resource.

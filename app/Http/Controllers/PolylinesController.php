@@ -23,6 +23,8 @@ class PolylinesController extends Controller
                 'name' => 'required|unique:polylines,name',
                 'description' => 'required',
                 'geom_polyline' => 'required',
+                'image' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:1024',
+
             ],
             [
                 'name.required' => 'Name is required',
@@ -32,11 +34,29 @@ class PolylinesController extends Controller
             ]
         );
 
+        //CREATE  IMAGE DIRECTOR IF NOT EXIST -PGWEBL 7
+        if (!is_dir('storage/images')) {
+            mkdir('./storage/images', 0777);
+        }
+
+        //GET IMAGE FILE - PGWEBL 7
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $name_image = time() . "_polyline." . strtolower($image->getClientOriginalExtension());
+            $image->move('storage/images', $name_image);
+            //$image->storeAs('public/images', $name_image);
+
+        } else {
+            $name_image = null;
+        }
+
+
         // Simpan data
         $data = [
             'geom' => $request->geom_polyline,
             'name' => $request->name,
             'description' => $request->description,
+            'image' => $name_image,
         ];
         // Simpan ke database
         if (!$this->polylines->create($data)) {

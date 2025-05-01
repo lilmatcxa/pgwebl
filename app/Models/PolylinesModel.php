@@ -17,7 +17,7 @@ class PolylinesModel extends Model
             ->selectRaw("
                 ST_AsGeoJSON(geom) AS geom,
                 name,
-                description,
+                description, image,
                 ST_Length(geom, true) AS length_m,
                 CAST(ST_Length(geom, true) / 1000 AS DOUBLE PRECISION) AS length_km,
                 created_at,
@@ -34,6 +34,7 @@ class PolylinesModel extends Model
                     'properties' => [
                         'name' => $polyline->name,
                         'description' => $polyline->description,
+                        'image' => $polyline->image,
 'length_km' => round((float) $polyline->length_km, 2),
                         'length_km' => (float) $polyline->length_km,
                         'created_at' => $polyline->created_at,
@@ -48,5 +49,6 @@ class PolylinesModel extends Model
         'geom',
         'name',
         'description',
+        'image',
     ];
 }

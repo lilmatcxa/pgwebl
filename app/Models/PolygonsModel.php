@@ -9,6 +9,13 @@ class PolygonsModel extends Model
 {
     protected $table = 'polygons';
     protected $guarded = ['id'];
+    protected $fillable = [
+        'geom',
+        'name',
+        'description',
+        'image',
+    ];
+
 
     public function geojson_polygons()
     {
@@ -16,7 +23,7 @@ class PolygonsModel extends Model
             ->selectRaw("
                 ST_AsGeoJSON(geom) AS geom,
                 name,
-                description,
+                description, image,
                 ST_Area(geom, true) AS area_m2,
                 ST_Area(geom, true) / 10000 AS area_ha,
                 created_at,
@@ -33,6 +40,7 @@ class PolygonsModel extends Model
                     'properties' => [
                         'name' => $polygon->name,
                         'description' => $polygon->description,
+                        'image' => $polygon->image,
                         'area_m2' => $polygon->area_m2,
                         'area_ha' => $polygon->area_ha, // Konversi ke hektar
                         'created_at' => $polygon->created_at,
@@ -43,9 +51,5 @@ class PolygonsModel extends Model
         ];
     }
 
-    protected $fillable = [
-        'geom',
-        'name',
-        'description',
-    ];
+
 }
