@@ -68,4 +68,21 @@ class PolygonsController extends Controller
         // Redirect ke halaman peta
         return redirect()->route('map')->with('success', 'Polygon has been added');
     }
+
+    public function destroy(string $id)
+    {
+        $imagefile = $this->polygons->find($id)->image;
+
+        if (!$this->polygons->destroy($id)) {
+            return redirect()->route('map')->with('error', 'Polygons failed to delete');
+        }
+
+        //Delete Image File
+        if ($imagefile !=null) {
+            unlink('storage/images/'.$imagefile);
+        }
+
+        return redirect()->route('map')->with('success', 'Polygons has been deleted');
+
+    }
 }

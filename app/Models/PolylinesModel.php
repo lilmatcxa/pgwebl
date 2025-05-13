@@ -14,7 +14,7 @@ class PolylinesModel extends Model
     public function geojson_polylines()
     {
         $polylines = DB::table($this->table)
-            ->selectRaw("
+            ->selectRaw("id,
                 ST_AsGeoJSON(geom) AS geom,
                 name,
                 description, image,
@@ -32,10 +32,11 @@ class PolylinesModel extends Model
                     'type' => 'Feature',
                     'geometry' => json_decode($polyline->geom),
                     'properties' => [
+                        'id' => $polyline->id,
                         'name' => $polyline->name,
                         'description' => $polyline->description,
                         'image' => $polyline->image,
-'length_km' => round((float) $polyline->length_km, 2),
+                        'length_km' => round((float) $polyline->length_km, 2),
                         'length_km' => (float) $polyline->length_km,
                         'created_at' => $polyline->created_at,
                         'updated_at' => $polyline->updated_at
