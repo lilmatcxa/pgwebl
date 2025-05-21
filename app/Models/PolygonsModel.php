@@ -9,12 +9,6 @@ class PolygonsModel extends Model
 {
     protected $table = 'polygons';
     protected $guarded = ['id'];
-    protected $fillable = [
-        'geom',
-        'name',
-        'description',
-        'image',
-    ];
 
 
     public function geojson_polygons()
@@ -31,26 +25,80 @@ class PolygonsModel extends Model
             ")
             ->get();
 
-        return [
+        $geojson = [
             'type' => 'FeatureCollection',
-            'features' => collect($polygons)->map(function ($polygon) {
-                return [
-                    'type' => 'Feature',
-                    'geometry' => json_decode($polygon->geom),
-                    'properties' => [
-                        'id' => $polygon->id,
-                        'name' => $polygon->name,
-                        'description' => $polygon->description,
-                        'image' => $polygon->image,
-                        'area_m2' => $polygon->area_m2,
-                        'area_ha' => $polygon->area_ha, // Konversi ke hektar
-                        'created_at' => $polygon->created_at,
-                        'updated_at' => $polygon->updated_at
-                    ],
-                ];
-            })->toArray(),
+            'features' => [],
         ];
+
+        foreach ($polygons as $polygon) {
+            $feature = [
+                'type' => 'Feature',
+                'geometry' => json_decode($polygon->geom),
+                'properties' => [
+                    'id' => $polygon->id,
+                    'name' => $polygon->name,
+                    'description' => $polygon->description,
+                    'image' => $polygon->image,
+                    'area_m2' => $polygon->area_m2,
+                    'area_ha' => $polygon->area_ha, // Konversi ke hektar
+                    'created_at' => $polygon->created_at,
+                    'updated_at' => $polygon->updated_at
+                ],
+            ];
+
+            array_push($geojson['features'], $feature);
+        }
+
+        return $geojson;
     }
 
+    public function geojson_polygon($id)
+    {
+        $polygon = DB::table($this->table)
+            ->selectRaw("id,
+                ST_AsGeoJSON(geom) AS geom,
+                name,
+                description, image,
+                ST_Length(geom, true) AS length_m,
+                CAST(ST_Length(geom, true) / 1000 AS DOUBLE PRECISION) AS length_km,
+                created_at,
+                updated_at
+            ")
+            ->where('id', $id)
+            ->first();  // Menggunakan first() untuk mendapatkan satu record
 
+        $geojson = [
+            'type' => 'FeatureCollection',
+            'features' => [],
+        ];
+
+        if ($polygon) {
+            $feature = [
+                'type' => 'Feature',
+                'geometry' => json_decode($polygon->geom),
+                'properties' => [
+                    'id' => $polygon->id,
+                    'name' => $polygon->name,
+                    'description' => $polygon->description,
+                    'image' => $polygon->image,
+                    // HAPUS atau ganti dengan yang lain, misal:
+                    'luas' => round((float) $polygon->length_km, 2), // jika kamu punya kolom ini
+                    'created_at' => $polygon->created_at,
+                    'updated_at' => $polygon->updated_at,
+                ]
+            ];
+
+
+            array_push($geojson['features'], $feature);
+        }
+
+        return $geojson;
+    }
+
+    protected $fillable = [
+        'geom',
+        'name',
+        'description',
+        'image',
+    ];
 }

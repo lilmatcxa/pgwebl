@@ -8,10 +8,16 @@ use App\Http\Controllers\PolylinesController;
 
 
 Route::get('/', [PointsController::class, 'index'])->name('map');
+Route::get('/', [PolylinesController::class, 'index'])->name('map');
+Route::get('/', [PolygonsController::class, 'index'])->name('map');
 
 Route::get('/table', [TableController::class, 'index'])->name('table');
 
 Route::post('/point-store', [PointsController::class, 'store'])->name('point.store');
+
+Route::post('/polyline-store', [PolylinesController::class, 'store'])->name('polyline.store');
+
+Route::post('/polygon-store', [PolygonsController::class, 'store'])->name('polygon.store');
 
 Route::resource('points', PointsController::class);
 Route::resource('polylines', PolylinesController::class);

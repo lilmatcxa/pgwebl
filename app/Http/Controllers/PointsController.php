@@ -15,9 +15,6 @@ class PointsController extends Controller
         $this->points = new PointsModel();
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $data = [
@@ -26,26 +23,19 @@ class PointsController extends Controller
         return view('map', $data);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // Validasi input
         $request->validate(
             [
                 'name' => 'required|unique:points,name',
                 'description' => 'required',
                 'geom_point' => 'required',
-                'image' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:51200', // 50 KB = 51200 bytes
+                'image' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:51200',
             ],
             [
                 'name.required' => 'Name is required',
@@ -55,13 +45,11 @@ class PointsController extends Controller
             ]
         );
 
-        // Buat direktori penyimpanan jika belum ada
         $imageDirectory = public_path('storage/images');
         if (!File::exists($imageDirectory)) {
             File::makeDirectory($imageDirectory, 0777, true);
         }
 
-        // Proses file gambar jika tersedia
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $name_image = time() . "_point." . strtolower($image->getClientOriginalExtension());
@@ -70,7 +58,6 @@ class PointsController extends Controller
             $name_image = null;
         }
 
-        // Siapkan data untuk disimpan
         $data = [
             'geom' => $request->geom_point,
             'name' => $request->name,
@@ -78,30 +65,20 @@ class PointsController extends Controller
             'image' => $name_image,
         ];
 
-        // Simpan data ke database
         if (!$this->points->create($data)) {
             return redirect()->route('map')->with('error', 'Point failed to add');
         }
 
-        // Redirect ke halaman peta dengan pesan sukses
         return redirect()->route('map')->with('success', 'Point has been added');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
-        //echo $id;
-
         $data = [
             'title' => 'Edit Point',
             'id' => $id,
@@ -110,17 +87,64 @@ class PointsController extends Controller
         return view('edit-point', $data);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate(
+            [
+                'name' => 'required|unique:points,name,' . $id,
+                'description' => 'required',
+                'geom_point' => 'required',
+                'image' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:51200',
+            ],
+            [
+                'name.required' => 'Name is required',
+                'name.unique' => 'Name already exists',
+                'description.required' => 'Description is required',
+                'geom_point.required' => 'Geometry is required',
+            ]
+        );
+
+        $imageDirectory = public_path('storage/images');
+        if (!File::exists($imageDirectory)) {
+            File::makeDirectory($imageDirectory, 0777, true);
+        }
+
+        $point = $this->points->find($id);
+        $old_image = $point->image;
+
+        if ($request->hasFile('image')) {
+            if ($old_image && file_exists('storage/images/' . $old_image)) {
+                unlink('storage/images/' . $old_image);
+            }
+
+            $image = $request->file('image');
+            $name_image = time() . "_point." . strtolower($image->getClientOriginalExtension());
+            $image->move($imageDirectory, $name_image);
+
+            //Delete old image file
+            if ($old_image != null) {
+                if (file_exists('./storage/images/' . $old_image)) {
+                    unlink('./storage/images/' . $old_image);
+                }
+            }
+        } else {
+            $name_image = $old_image;
+        }
+
+        $data = [
+            'geom' => $request->geom_point,
+            'name' => $request->name,
+            'description' => $request->description,
+            'image' => $name_image,
+        ];
+
+        if (!$point->update($data)) {
+            return redirect()->route('map')->with('error', 'Point failed to update');
+        }
+
+        return redirect()->route('map')->with('success', 'Point has been added');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $imagefile = $this->points->find($id)->image;
@@ -129,12 +153,13 @@ class PointsController extends Controller
             return redirect()->route('map')->with('error', 'Point failed to delete');
         }
 
-        //Delete Image File
-        if ($imagefile !=null) {
-            unlink('storage/images/'.$imagefile);
+        if ($imagefile != null) {
+            $imagePath = 'storage/images/' . $imagefile;
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
         }
 
         return redirect()->route('map')->with('success', 'Point has been deleted');
-
     }
 }
