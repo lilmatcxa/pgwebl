@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PolylinesModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 
 class PolylinesController extends Controller
 {
@@ -26,6 +27,11 @@ class PolylinesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
+    public function create()
+    {
+        //
+    }
     public function store(Request $request)
     {
         // Validasi request
@@ -59,12 +65,17 @@ class PolylinesController extends Controller
             $name_image = null;
         }
 
+        // 🔥 Konversi GeoJSON ke geometry
+        $geom = DB::selectOne("SELECT ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) AS geom", [
+            $request->geom_polyline
+        ]);
         // Simpan data
         $data = [
             'geom' => $request->geom_polyline,
             'name' => $request->name,
             'description' => $request->description,
             'image' => $name_image,
+            'user_id' => auth()->user()->id,
         ];
 
         if (!$this->polylines->create($data)) {
@@ -79,6 +90,7 @@ class PolylinesController extends Controller
         $polyline = $this->polylines->find($id);
         return response()->json($polyline);
     }
+
 
     public function edit(string $id)
     {
@@ -127,6 +139,7 @@ class PolylinesController extends Controller
                 unlink(public_path('storage/images/' . $oldImage));
             }
         }
+
 
         if (!$polyline->save()) {
             return redirect()->route('map')->with('error', 'Failed to update polyline');

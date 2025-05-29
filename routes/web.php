@@ -3,23 +3,36 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\PointsController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PolygonsController;
 use App\Http\Controllers\PolylinesController;
+use App\Http\Controllers\PublicController;
 
+Route::get('/', [PublicController::class, 'index'])->name('home');
 
-Route::get('/', [PointsController::class, 'index'])->name('map');
-Route::get('/', [PolylinesController::class, 'index'])->name('map');
-Route::get('/', [PolygonsController::class, 'index'])->name('map');
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/table', [TableController::class, 'index'])->name('table');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-Route::post('/point-store', [PointsController::class, 'store'])->name('point.store');
-
-Route::post('/polyline-store', [PolylinesController::class, 'store'])->name('polyline.store');
-
-Route::post('/polygon-store', [PolygonsController::class, 'store'])->name('polygon.store');
 
 Route::resource('points', PointsController::class);
 Route::resource('polylines', PolylinesController::class);
 Route::resource('polygons', PolygonsController::class);
 
+Route::get('/table', [TableController::class, 'index'])->name('table');
+Route::get('/map', [PointsController::class, 'index'])->middleware(['auth', 'verified'])->name('map');
+Route::get('/map', [PolylinesController::class, 'index'])->middleware(['auth', 'verified'])->name('map');
+Route::get('/map', [PolygonsController::class, 'index'])->middleware(['auth', 'verified'])->name('map');
+
+//Route::get('/', [PolylinesController::class, 'index'])->name('map');
+//Route::get('/', [PolygonsController::class, 'index'])->name('map');
+
+
+
+require __DIR__.'/auth.php';

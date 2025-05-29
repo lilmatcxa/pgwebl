@@ -264,7 +264,7 @@
                     "<button type='submit' class='btn btn-danger' onclick='return confirm(`Yakin akan dihapus?`)'><i class='fa-solid fa-trash-can'></i></button>" +
                     "</form>" +
                     "</div>" +
-                    "</div>";
+                    "</div>" + "<br>" + "<p>dibuat: " + feature.properties.user_created + "</p>";
 
                 //  ZIDNI CEK NANTI UNTUK CARA PENULISAN YG LAIN
                 //var popupContent = 'Nama: ${feature.properties.name} <br>
@@ -321,7 +321,7 @@
                 "<button type='submit' class='btn btn-danger' onclick='return confirm(`Yakin akan dihapus?`)'><i class='fa-solid fa-trash-can'></i></button>" +
                 "</form>" +
                 "</div>" +
-                "</div>";
+                "</div>" + "<br>" + "<p>dibuat: " + feature.properties.user_created + "</p>";
 
 
             "Panjang: " + feature.properties.length_km.toFixed(2) + " km" + "<br>" +
@@ -352,40 +352,53 @@
             var routeedit = "{{ route('polygons.edit', ':id') }}";
             routeedit = routeedit.replace(':id', feature.properties.id);
 
-            var popupContent = "Nama: " + feature.properties.name + "<br>" +
-                "Deskripsi: " + feature.properties.description + "<br>" +
-                "Luas: " + feature.properties.area_ha.toFixed(2) + " ha" + "<br>" +
-                "Dibuat: " + feature.properties.created_at + "<br>" +
-                "<img src='{{ asset('storage/images') }}/" + feature.properties.image +
-                "' width='200px' alt=''>" + "<br>" +
+            var popupContent = `
+                <div style="max-width: 250px;">
+                    <h5>${feature.properties.name}</h5>
+                    <p><strong>Dibuat oleh:</strong> ${feature.properties.user_created}</p>
+                    <p><strong>Deskripsi:</strong><br>${feature.properties.description}</p>
+                    <p><strong>Luas:</strong> ${feature.properties.area_ha.toFixed(2)} ha</p>
+                    <p><strong>Tanggal dibuat:</strong><br>${feature.properties.created_at}</p>
+                    <div style="text-align:center; margin-top:10px; margin-bottom:10px;">
+                        <img src="{{ asset('storage/images') }}/${feature.properties.image}"
+                             alt="Gambar"
+                             style="width: 100%; max-width: 200px; border-radius: 8px;">
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <a href="${routeedit}" class="btn btn-warning btn-sm w-100">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                        </div>
+                        <div class="col-6 text-end">
+                            <form method="POST" action="${routedelete}" onsubmit="return confirm('Yakin akan dihapus?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm w-100">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
 
-                "<div class='row mt-4'>" +
-                "<div class='col-6'>" +
-                "<a href='" + routeedit +
-                "' class='btn btn-warning btn-sm'><i class='fa-solid fa-pen-to-square'></i></a>" +
-                "</div>" + "<div class='col-6 text-end'>" +
-                "<form method='POST' action='" + routedelete + "'>" +
-                '@csrf' + '@method('DELETE')' +
-                "<button type='submit' class='btn btn-danger' onclick='return confirm(`Yakin akan dihapus?`)'><i class='fa-solid fa-trash-can'></i></button>" +
-                "</form>"
-                "</div>" +
-                "</div>";
 
-                "Luas: " + feature.properties
-                    .area_ha.toFixed(2) + " ha" + "<br>" +
-                    "Dibuat: " + feature.properties.created_at;
+                // "Luas: " + feature.properties
+                //     .area_ha.toFixed(2) + " ha" + "<br>" +
+                //     "Dibuat: " + feature.properties.created_at;
                 layer.bindPopup(popupContent);
 
-            layer.on({
-                click: function(e) {
-                    polygon.bindPopup(popupContent);
-                },
-                mouseover: function(e) {
-                    polygon.bindTooltip(feature.properties.name);
-                },
-            });
-        },
-    });
+                layer.on({
+                    click: function(e) {
+                        polygon.bindPopup(popupContent);
+                    },
+                    mouseover: function(e) {
+                        polygon.bindTooltip(feature.properties.name);
+                    },
+                });
+            },
+        });
         $.getJSON("{{ route('api.polygons') }}", function(data) {
             polygon.addData(data);
             map.addLayer(polygon);

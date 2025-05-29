@@ -63,6 +63,7 @@ class PointsController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'image' => $name_image,
+            'user_id' => auth()->user()->id,
         ];
 
         if (!$this->points->create($data)) {
@@ -72,11 +73,11 @@ class PointsController extends Controller
         return redirect()->route('map')->with('success', 'Point has been added');
     }
 
+
     public function show(string $id)
     {
         //
     }
-
     public function edit(string $id)
     {
         $data = [
@@ -136,6 +137,7 @@ class PointsController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'image' => $name_image,
+            'user_id' => auth()->user()->id,
         ];
 
         if (!$point->update($data)) {

@@ -21,7 +21,10 @@ class PolygonsController extends Controller
         ];
         return view('map', $data);
     }
-
+    public function create()
+    {
+        //
+    }
     public function store(Request $request)
     {
         // Validasi request
@@ -61,6 +64,7 @@ class PolygonsController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'image' => $name_image,
+            'user_id' => auth()->user()->id,
         ];
 
         if (!$this->polygons->create($data)) {
@@ -141,5 +145,37 @@ class PolygonsController extends Controller
         }
 
         return redirect()->route('map')->with('success', 'Polygon has been deleted');
+    }
+
+    public function apiPolygon($id)
+    {
+        $polygon = $this->polygons->find($id);
+
+        if (!$polygon) {
+            // Jika tidak ditemukan, kembalikan feature collection kosong
+            return response()->json([
+                'type' => 'FeatureCollection',
+                'features' => []
+            ]);
+        }
+
+        $feature = [
+            'type' => 'Feature',
+            'geometry' => json_decode($polygon->geom),
+            'properties' => [
+                'id' => $polygon->id,
+                'name' => $polygon->name,
+                'description' => $polygon->description,
+                'image' => $polygon->image,
+                'luas' => round((float) $polygon->length_km, 2),
+                'created_at' => $polygon->created_at,
+                'updated_at' => $polygon->updated_at,
+            ]
+        ];
+
+        return response()->json([
+            'type' => 'FeatureCollection',
+            'features' => [$feature]
+        ]);
     }
 }
